@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Signature Generator · Rasmus Auctions</title>
+<style>
+  :root{
+    --rasmus:#0b008e;
+    --ink:#111014;
+    --muted:#6b6b72;
+    --line:#e4e4ea;
+    --bg:#f6f6f2;
+    --card:#ffffff;
+    --ok:#1a8f4c;
+    --warn:#8a5a00;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    line-height:1.5;
+  }
+  header{background:var(--rasmus);color:#fff;padding:22px 0}
+  .header-inner{max-width:1040px;margin:0 auto;padding:0 20px}
+  header h1{margin:0;font-size:20px;letter-spacing:.02em}
+  header p{margin:4px 0 0;font-size:13px;opacity:.85}
+  .wrap{
+    max-width:1040px;margin:0 auto;padding:28px 20px 60px;
+    display:grid;grid-template-columns:360px 1fr;gap:28px;
+  }
+  @media (max-width:840px){.wrap{grid-template-columns:1fr}}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px}
+  .panel h2{margin:0 0 16px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+  label{
+    display:block;font-size:12px;font-weight:600;color:var(--muted);
+    margin:14px 0 5px;text-transform:uppercase;letter-spacing:.04em;
+  }
+  input[type=text]{
+    width:100%;padding:10px 12px;border:1px solid var(--line);
+    border-radius:8px;font-size:14px;font-family:inherit;color:var(--ink);
+  }
+  input[type=text]:focus{outline:2px solid var(--rasmus);outline-offset:1px;border-color:var(--rasmus)}
+  .hint{font-size:11px;color:var(--muted);margin-top:5px}
+  .photo-box{
+    border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:6px;background:#fbfbff;
+  }
+  .thumb-row{display:flex;align-items:center;gap:14px}
+  .thumb{
+    width:64px;height:64px;border-radius:8px;border:1px solid var(--line);
+    background:#fff center/contain no-repeat;flex:0 0 64px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:10px;color:var(--muted);text-align:center;
+  }
+  .thumb-actions{display:flex;flex-direction:column;gap:7px;flex:1}
+  .mini{
+    appearance:none;border:1px solid var(--line);background:#fff;color:var(--ink);
+    font-size:12px;font-weight:600;padding:7px 10px;border-radius:7px;cursor:pointer;
+    font-family:inherit;text-align:center;
+  }
+  .mini:hover{border-color:var(--rasmus);color:var(--rasmus)}
+  .divider{
+    display:flex;align-items:center;gap:10px;margin:14px 0 4px;
+    font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;
+  }
+  .divider::before,.divider::after{content:"";height:1px;background:var(--line);flex:1}
+  .stage{border:1px dashed var(--line);border-radius:10px;padding:26px;background:#fff;overflow-x:auto}
+  .preview-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px}
+  .btn{
+    appearance:none;border:0;background:var(--rasmus);color:#fff;font-size:14px;font-weight:600;
+    padding:11px 18px;border-radius:8px;cursor:pointer;font-family:inherit;white-space:nowrap;
+  }
+  .btn:hover{filter:brightness(1.08)}
+  .btn:active{transform:translateY(1px)}
+  .btn.copied{background:var(--ok)}
+  .steps{margin-top:22px;background:#fbfbff;border:1px solid var(--line);border-radius:10px;padding:18px 20px}
+  .steps h3{margin:0 0 10px;font-size:13px;color:var(--rasmus)}
+  .steps ol{margin:0;padding-left:18px;font-size:13px;color:#333}
+  .steps li{margin:6px 0}
+  .note{
+    margin-top:14px;padding:12px 14px;border-radius:8px;
+    background:#fff8e8;border:1px solid #f0dfae;font-size:12px;color:var(--warn);
+  }
+  .note strong{color:#6b4600}
+  .meter{font-size:11px;color:var(--muted);white-space:nowrap}
+  .meter.over{color:#b00020;font-weight:600}
+  input[type=file]{display:none}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <h1>Signature Generator · Rasmus Auctions</h1>
+    <p>Add your information, copy the signature, and paste it into Gmail.</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="panel">
+    <h2>Add your information</h2>
+
+    <label>Profile photo</label>
+    <div class="photo-box">
+      <div class="thumb-row">
+        <div class="thumb" id="thumb">No photo</div>
+        <div class="thumb-actions">
+          <button class="mini" id="pickBtn" type="button">Upload from computer</button>
+          <button class="mini" id="clearBtn" type="button">Remove photo</button>
+        </div>
+      </div>
+      <input type="file" id="f-file" accept="image/*">
+    </div>
+
+    <label for="f-name">Name</label>
+    <input id="f-name" type="text" value="" placeholder="Your name" autocomplete="off">
+
+    <label for="f-job">Job title</label>
+    <input id="f-job" type="text" value="" placeholder="Your job title" autocomplete="off">
+
+    <label for="f-phone">Phone</label>
+    <input id="f-phone" type="text" value="" placeholder="555-012-3456" inputmode="numeric" autocomplete="off" maxlength="12">
+  </section>
+
+  <section>
+    <div class="panel">
+      <div class="preview-head">
+        <h2 style="margin:0">Preview</h2>
+        <div style="display:flex;align-items:center;gap:14px">
+          <span id="meter" class="meter"></span>
+          <button class="btn" id="copyBtn">Copy signature</button>
+        </div>
+      </div>
+      <div class="stage">
+        <div id="signature"></div>
+      </div>
+    </div>
+
+    <div class="steps">
+      <h3>How to add it to Gmail</h3>
+      <ol>
+        <li>Fill in your details and click <strong>Copy signature</strong>.</li>
+        <li>In Gmail, go to <strong>⚙ Settings → See all settings</strong>.</li>
+        <li>Scroll to <strong>Signature</strong> and create a new one (or edit the existing one).</li>
+        <li>Click inside the signature box and paste with <strong>Ctrl + V</strong> (Cmd + V on Mac).</li>
+        <li>Scroll to the bottom and click <strong>Save changes</strong>.</li>
+      </ol>
+      <div class="note">
+        <strong>About the photo:</strong> Gmail caps signatures at about 10,000 characters, so your photo is automatically resized to 100×100 and compressed to fit. The counter above the preview shows how much room is left. If Gmail still drops the photo when you save, use the <strong>Insert image</strong> button in Gmail's signature editor and drag your photo into the empty space on the left.
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+  const LOGO = "https://cdn.signaturehound.com/users/3thuyflmrjmv4r9/ybai7zlmrjn4w0k.png?v=1783972449874";
+  const ADDRESS = "201 Yoakum Parkway #54, Alexandria, VA 22304";
+
+  const fields = {
+    name: document.getElementById('f-name'),
+    job: document.getElementById('f-job'),
+    phone: document.getElementById('f-phone'),
+  };
+  const fileInput = document.getElementById('f-file');
+  const pickBtn = document.getElementById('pickBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const thumb = document.getElementById('thumb');
+  const sig = document.getElementById('signature');
+  const copyBtn = document.getElementById('copyBtn');
+
+  let uploadedPhoto = null;
+  let originalFile = null;
+
+  function esc(s){
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  // Gmail corta las firmas de más de ~10.000 caracteres.
+  // La foto va incrustada en el código, así que la generamos a 200x200
+  // (se muestra a 100x100 => nítida en pantallas Retina) y bajamos la
+  // calidad solo lo necesario para caber en el espacio que quede libre.
+  const GMAIL_LIMIT = 10000;
+  const SAFETY = 300;
+  const PHOTO_DISPLAY = 120;   // tamaño en la firma (se genera hasta 2x para Retina)
+
+  function photoBudget(){
+    const before = uploadedPhoto;
+    uploadedPhoto = null;
+    const base = minify(buildSignature()).length;
+    uploadedPhoto = before;
+    return GMAIL_LIMIT - SAFETY - base - 220; // 220 ≈ la etiqueta <img>
+  }
+
+  function compressPhoto(file, budget){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('read'));
+      reader.onload = ev => {
+        const img = new Image();
+        img.onerror = () => reject(new Error('decode'));
+        img.onload = () => {
+          // recorte centrado tipo "cover" para no deformar la foto
+          const side = Math.min(img.width, img.height);
+          const sx = (img.width - side) / 2;
+          const sy = (img.height - side) / 2;
+
+          function encode(size, quality){
+            const canvas = document.createElement('canvas');
+            canvas.width = size; canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            ctx.imageSmoothingQuality = 'high';
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, size, size);
+            ctx.drawImage(img, sx, sy, side, side, 0, 0, size, size);
+            return canvas.toDataURL('image/jpeg', quality);
+          }
+
+          // Las fotos con mucha textura (pelo, follaje, tramas) pesan mucho más.
+          // Si bajar la calidad no basta, reducimos la resolución antes que
+          // devolver algo que Gmail vaya a rechazar.
+          const scales = [2, 1.75, 1.5, 1.25, 1];
+          let best = null;
+          for (const scale of scales){
+            const size = Math.round(PHOTO_DISPLAY * scale);
+            for (let q = 0.8; q >= 0.35; q -= 0.05){
+              const out = encode(size, q);
+              if (out.length <= budget) { resolve(out); return; }
+              best = out; // guardamos el más pequeño por si nada cabe
+            }
+          }
+          // Último recurso: la versión más comprimida posible
+          resolve(encode(PHOTO_DISPLAY, 0.3));
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Quita espacios sobrantes: ahorra ~1.000 caracteres
+  function minify(html){
+    return html.replace(/>\s+</g, '><').replace(/\s{2,}/g, ' ').trim();
+  }
+
+  function telHref(s){ return '+1' + String(s).replace(/\D/g,''); }
+
+  // Formatea 10 dígitos como 555-012-3456 mientras se escribe
+  function formatUSPhone(digits){
+    const d = digits.slice(0, 10);
+    if (d.length <= 3) return d;
+    if (d.length <= 6) return d.slice(0,3) + '-' + d.slice(3);
+    return d.slice(0,3) + '-' + d.slice(3,6) + '-' + d.slice(6);
+  }
+
+  fields.phone.addEventListener('input', e => {
+    const el = e.target;
+    // cuenta cuántos dígitos hay antes del cursor para restaurarlo después
+    const digitsBeforeCaret = el.value.slice(0, el.selectionStart).replace(/\D/g,'').length;
+    const formatted = formatUSPhone(el.value.replace(/\D/g,''));
+    el.value = formatted;
+
+    let caret = 0, seen = 0;
+    while (caret < formatted.length && seen < digitsBeforeCaret){
+      if (/\d/.test(formatted[caret])) seen++;
+      caret++;
+    }
+    while (caret < formatted.length && formatted[caret] === '-') caret++;
+    el.setSelectionRange(caret, caret);
+  });
+
+  function currentPhoto(){
+    return uploadedPhoto;
+  }
+
+  function updateThumb(){
+    const p = currentPhoto();
+    if (p){
+      thumb.style.backgroundImage = `url("${p}")`;
+      thumb.textContent = '';
+    } else {
+      thumb.style.backgroundImage = 'none';
+      thumb.textContent = 'No photo';
+    }
+  }
+
+  pickBtn.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      originalFile = file;
+      uploadedPhoto = await compressPhoto(file, photoBudget());
+    } catch (err) {
+      uploadedPhoto = null;
+      originalFile = null;
+      alert("That file couldn't be read. Try a JPG or PNG.");
+    }
+    updateThumb();
+    render();
+  });
+  clearBtn.addEventListener('click', () => {
+    uploadedPhoto = null;
+    originalFile = null;
+    fileInput.value = '';
+    updateThumb();
+    render();
+  });
+
+  function buildSignature(){
+    const name = esc(fields.name.value || '');
+    const job = esc(fields.job.value || '');
+    const phoneText = esc(fields.phone.value || '');
+    const phoneTel = telHref(fields.phone.value || '');
+    const photo = currentPhoto();
+
+    const photoBlock = photo ? `
+            <table style="margin:0;border-collapse:collapse">
+              <tr><td style="padding:0 0 20px 0">
+                <img src="${photo}" alt="${name}" width="${PHOTO_DISPLAY}" height="${PHOTO_DISPLAY}" style="display:block;border:0;width:${PHOTO_DISPLAY}px;height:${PHOTO_DISPLAY}px;border-radius:4px" />
+              </td></tr>
+            </table>` : '';
+
+    return `
+<table style="margin:0;border-collapse:collapse">
+  <tr><td style="padding:0">
+    <table style="border-collapse:collapse;margin:0">
+      <tr>
+        <td align="center" style="padding:0 18px 0 0;vertical-align:top">${photoBlock}
+          <table style="margin:0;border-collapse:collapse">
+            <tr><td style="padding:0">
+              <a href="https://www.rasmus.com" target="_blank"><img src="${LOGO}" alt="Rasmus Auctions" width="112" height="13" style="display:block;border:0;max-width:112px" /></a>
+            </td></tr>
+          </table>
+        </td>
+        <td style="border-right:2px solid #0b008e"></td>
+        <td style="padding:0 0 0 18px;vertical-align:top;font-family:Arial,sans-serif;font-size:13px;line-height:17px">
+          <table style="margin:0;border-collapse:collapse">
+            <tr><td style="padding:0 0 20px 0;font-family:Arial,sans-serif;font-size:13px;line-height:17px;white-space:nowrap">
+              <p style="margin:1px;font-weight:700;color:#000">${name}</p>
+              <p style="margin:1px;color:#888">${job}</p>
+              <p style="margin:1px;color:#888">${ADDRESS}</p>
+              <p style="margin:1px;color:#888">Rasmus Auctions</p>
+            </td></tr>
+            <tr><td style="padding:0">
+              <table style="margin:0;border-collapse:collapse">
+                <tr>
+                  <td valign="middle" style="padding:1px 5px 1px 0">
+                    <img src="https://cdn.signaturehound.com/icons/mobile_default_0b008e.png" alt="Tel" width="18" height="18" style="display:block;border:0;width:18px;height:18px" />
+                  </td>
+                  <td style="padding:1px 0;vertical-align:middle;font-family:Arial,sans-serif;font-size:13px;line-height:17px;white-space:nowrap">
+                    <a href="tel:${phoneTel}" style="color:#888;text-decoration:none"><span style="color:#888;text-decoration:none">${phoneText}</span></a>
+                  </td>
+                </tr>
+                <tr>
+                  <td valign="middle" style="padding:1px 5px 1px 0">
+                    <img src="https://cdn.signaturehound.com/icons/website_default_0b008e.png" alt="Web" width="18" height="18" style="display:block;border:0;width:18px;height:18px" />
+                  </td>
+                  <td style="padding:1px 0;vertical-align:middle;font-family:Arial,sans-serif;font-size:13px;line-height:17px;white-space:nowrap">
+                    <a href="https://www.rasmus.com" target="_blank" style="color:#0b008e;font-weight:700;text-decoration:none"><span style="color:#0b008e;font-weight:700;text-decoration:none">rasmus.com</span></a>
+                  </td>
+                </tr>
+              </table>
+            </td></tr>
+            <tr><td style="padding:0">
+              <table style="margin:0;border-collapse:collapse"><tr>
+                <td style="font-size:0;line-height:0;padding:22px 4px 0 0">
+                  <a href="https://www.facebook.com/RasmusAuction/?bpref=facebook" target="_blank"><img src="https://cdn.signaturehound.com/icons/facebook_default_0b008e.png" alt="Facebook" width="22" height="22" style="display:block;border:0;width:22px;height:22px" /></a>
+                </td>
+                <td style="font-size:0;line-height:0;padding:22px 4px 0 0">
+                  <a href="https://www.youtube.com/user/RasmusAuctioneers1" target="_blank"><img src="https://cdn.signaturehound.com/icons/youtube_default_0b008e.png" alt="YouTube" width="22" height="22" style="display:block;border:0;width:22px;height:22px" /></a>
+                </td>
+                <td style="font-size:0;line-height:0;padding:22px 4px 0 0">
+                  <a href="https://x.com/RasmusAuction?bpref=twitter" target="_blank"><img src="https://cdn.signaturehound.com/icons/x_default_0b008e.png" alt="X" width="22" height="22" style="display:block;border:0;width:22px;height:22px" /></a>
+                </td>
+                <td style="font-size:0;line-height:0;padding:22px 0 0 0">
+                  <a href="https://www.linkedin.com/company/rasmus-auctioneers/" target="_blank"><img src="https://cdn.signaturehound.com/icons/linkedin_default_0b008e.png" alt="LinkedIn" width="22" height="22" style="display:block;border:0;width:22px;height:22px" /></a>
+                </td>
+              </tr></table>
+            </td></tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+</table>`;
+  }
+
+  let refitting = false;
+  async function refitIfNeeded(){
+    if (refitting || !originalFile) return;
+    if (minify(buildSignature()).length <= GMAIL_LIMIT) return;
+    refitting = true;
+    try {
+      uploadedPhoto = await compressPhoto(originalFile, photoBudget());
+      updateThumb();
+      render();
+    } finally { refitting = false; }
+  }
+
+  function render(){
+    sig.innerHTML = buildSignature();
+    const size = minify(buildSignature()).length;
+    const meter = document.getElementById('meter');
+    const over = size > GMAIL_LIMIT;
+    meter.textContent = over
+      ? `${size.toLocaleString()} / 10,000 — too long for Gmail`
+      : `${size.toLocaleString()} / 10,000 characters`;
+    meter.classList.toggle('over', over);
+    copyBtn.disabled = over;
+    copyBtn.style.opacity = over ? .5 : 1;
+    if (over) refitIfNeeded();
+  }
+
+  Object.values(fields).forEach(el => el.addEventListener('input', render));
+
+  updateThumb();
+  render();
+
+  copyBtn.addEventListener('click', async () => {
+    const html = minify(buildSignature());
+    const plain = sig.innerText;
+    try {
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          'text/html': new Blob([html], {type:'text/html'}),
+          'text/plain': new Blob([plain], {type:'text/plain'})
+        })
+      ]);
+      flash('Copied!');
+    } catch (e) {
+      const range = document.createRange();
+      range.selectNode(sig);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      try { document.execCommand('copy'); flash('Copied!'); }
+      catch (err) { flash('Select and copy manually'); }
+      sel.removeAllRanges();
+    }
+  });
+
+  function flash(text){
+    copyBtn.textContent = text;
+    copyBtn.classList.add('copied');
+    setTimeout(() => {
+      copyBtn.textContent = 'Copy signature';
+      copyBtn.classList.remove('copied');
+    }, 1800);
+  }
+</script>
+</body>
+</html>
